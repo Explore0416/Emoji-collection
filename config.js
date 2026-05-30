@@ -4,13 +4,13 @@
 const siteConfig = {
     // ====================== 网站基本信息 ======================
     /** 网站标题 */
-    siteTitle: "心屿表情包",
+    siteTitle: "表情包合集",
     
     /** 页面副标题 */
-    pageSubtitle: "心屿APP专属表情包合集",
+    pageSubtitle: "收集到的表情包合集",
     
     /** 页脚版权信息 */
-    footerText: "© 2026 心屿APP | 所有表情包仅供个人非商业使用",
+    footerText: "© 2026 神秘用户 | 所有表情包仅供个人非商业使用",
     
     // ====================== 文件夹路径配置 ======================
     /** 表情包图片存放的文件夹路径 */
@@ -40,8 +40,8 @@ const siteConfig = {
      */
     zipPackages: [
         // 在这里添加你的ZIP包
-        // { name: '全部表情包合集', filename: 'all-emojis.zip' },
-        // { name: '可爱表情包合集', filename: 'cute-emojis.zip' },
+        // { name: '全部表情包合集', filename: 'TV表情包文件.zip' },
+        // { name: '可爱表情包合集', filename: '老班长表情包.zip' },
         // { name: '搞笑表情包合集', filename: 'funny-emojis.zip' },
     ]
 };
