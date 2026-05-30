@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>表情包展示平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 引入独立的配置文件 -->
+    <script src="./config.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#8b5cf6',
+                        accent: '#ec4899',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .glass {
+                background: rgba(255, 255, 255, 0.7);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+            }
+            .card-hover {
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .card-hover:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-indigo-50 min-h-screen">
+    <!-- 导航栏 -->
+    <nav class="glass sticky top-0 z-50 border-b border-white/20 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <i class="fa fa-smile-o text-2xl text-primary mr-3"></i>
+                    <h1 id="siteTitle" class="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                        表情包展示平台
+                    </h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="downloadAllBtn" class="bg-gradient-to-r from-primary to-secondary text-white px-5 py-2 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 flex items-center">
+                        <i class="fa fa-download mr-2"></i>
+                        下载全部
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容区 -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- 统计信息 -->
+        <div class="text-center mb-12">
+            <h2 id="pageSubtitle" class="text-3xl font-bold text-gray-800 mb-2">精选表情包合集</h2>
+            <p class="text-gray-500" id="stats">正在加载表情包...</p>
+        </div>
+
+        <!-- 表情包网格 -->
+        <div id="emojiGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+            <!-- 表情包将在这里动态生成 -->
+        </div>
+
+        <!-- 加载状态 -->
+        <div id="loading" class="flex justify-center items-center py-20">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+
+        <!-- 空状态 -->
+        <div id="emptyState" class="hidden text-center py-20">
+            <i class="fa fa-folder-open-o text-6xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500 text-lg">暂无表情包</p>
+        </div>
+    </main>
+
+    <!-- 图片查看器模态框 -->
+    <div id="imageModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+        <button id="closeModal" class="absolute top-4 right-4 text-white text-3xl hover:text-gray-300 transition-colors">
+            <i class="fa fa-times"></i>
+        </button>
+        <img id="modalImage" src="" alt="表情包大图" class="max-w-full max-h-[90vh] rounded-lg shadow-2xl">
+        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-4">
+            <a id="downloadSingleBtn" href="" download class="bg-white text-gray-800 px-6 py-2 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 flex items-center">
+                <i class="fa fa-download mr-2"></i>
+                下载此图
+            </a>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="mt-20 py-8 border-t border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500">
+            <p id="footerText">© 2025 表情包展示平台 | 所有表情包仅供个人使用</p>
+        </div>
+    </footer>
+
+    <script>
+        // 等待配置文件加载完成
+        document.addEventListener('DOMContentLoaded', () => {
+            // 检查配置是否加载成功
+            if (typeof siteConfig === 'undefined') {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('emptyState').classList.remove('hidden');
+                document.getElementById('stats').textContent = '配置文件加载失败，请检查config.js是否存在';
+                return;
+            }
+
+            // 应用网站配置
+            applySiteConfig();
+            
+            // 初始化页面
+            loadEmojis();
+            setupEventListeners();
+        });
+
+        // 应用网站基本配置
+        function applySiteConfig() {
+            document.title = siteConfig.siteTitle;
+            document.getElementById('siteTitle').textContent = siteConfig.siteTitle;
+            document.getElementById('pageSubtitle').textContent = siteConfig.pageSubtitle;
+            document.getElementById('footerText').textContent = siteConfig.footerText;
+        }
+
+        // 加载表情包
+        function loadEmojis() {
+            const emojiFiles = siteConfig.emojiFiles;
+            
+            if (emojiFiles.length === 0) {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('emptyState').classList.remove('hidden');
+                document.getElementById('stats').textContent = '请在config.js中添加表情包文件名';
+                return;
+            }
+
+            // 清空加载状态
+            document.getElementById('loading').classList.add('hidden');
+            const emojiGrid = document.getElementById('emojiGrid');
+            emojiGrid.innerHTML = '';
+
+            // 生成表情包卡片
+            emojiFiles.forEach((filename, index) => {
+                const card = createEmojiCard(filename, index);
+                emojiGrid.appendChild(card);
+            });
+
+            // 更新统计信息
+            document.getElementById('stats').textContent = `共 ${emojiFiles.length} 个精选表情包`;
+        }
+
+        // 创建表情包卡片
+        function createEmojiCard(filename, index) {
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-xl overflow-hidden shadow-md card-hover';
+            card.style.animationDelay = `${index * 0.05}s`;
+            
+            const img = document.createElement('img');
+            img.src = `${siteConfig.photosFolder}/${filename}`;
+            img.alt = `表情包 ${index + 1}`;
+            img.className = 'w-full h-48 object-cover cursor-pointer transition-transform duration-300 hover:scale-110';
+            img.loading = 'lazy';
+            
+            // 图片加载失败处理
+            img.onerror = function() {
+                this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMiA5VjE1IiBzdHJva2U9IiM5NEEzQjYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CjxjaXJjbGUgY3g9IjEyIiBjeT0iNiIgcj0iMSIgZmlsbD0iIzk0QTNCNiIvPgo8L3N2Zz4=';
+                this.classList.add('p-8');
+            };
+            
+            // 点击图片打开模态框
+            img.addEventListener('click', () => {
+                openModal(`${siteConfig.photosFolder}/${filename}`, filename);
+            });
+            
+            card.appendChild(img);
+            return card;
+        }
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 关闭模态框
+            document.getElementById('closeModal').addEventListener('click', closeModalFunc);
+            
+            // 点击模态框背景关闭
+            document.getElementById('imageModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('imageModal')) {
+                    closeModalFunc();
+                }
+            });
+            
+            // ESC键关闭模态框
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !document.getElementById('imageModal').classList.contains('hidden')) {
+                    closeModalFunc();
+                }
+            });
+            
+            // 下载全部按钮
+            document.getElementById('downloadAllBtn').addEventListener('click', () => {
+                const zipPackages = siteConfig.zipPackages;
+                
+                if (zipPackages.length === 0) {
+                    alert('暂无可用的ZIP包，请在config.js中添加ZIP包配置');
+                    return;
+                }
+                
+                // 如果只有一个ZIP包，直接下载
+                if (zipPackages.length === 1) {
+                    window.location.href = `${siteConfig.zipsFolder}/${zipPackages[0].filename}`;
+                    return;
+                }
+                
+                // 如果有多个ZIP包，显示选择菜单
+                showZipSelection();
+            });
+        }
+
+        // 打开图片模态框
+        function openModal(imageSrc, filename) {
+            document.getElementById('modalImage').src = imageSrc;
+            document.getElementById('downloadSingleBtn').href = imageSrc;
+            document.getElementById('downloadSingleBtn').download = filename;
+            document.getElementById('imageModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 关闭图片模态框
+        function closeModalFunc() {
+            document.getElementById('imageModal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        // 显示ZIP包选择菜单
+        function showZipSelection() {
+            const menu = document.createElement('div');
+            menu.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4';
+            menu.id = 'zipMenu';
+            
+            const content = document.createElement('div');
+            content.className = 'bg-white rounded-xl p-6 max-w-md w-full shadow-2xl';
+            
+            const title = document.createElement('h3');
+            title.className = 'text-xl font-bold text-gray-800 mb-4';
+            title.textContent = '选择要下载的合集';
+            
+            const list = document.createElement('div');
+            list.className = 'space-y-3';
+            
+            siteConfig.zipPackages.forEach(pkg => {
+                const item = document.createElement('a');
+                item.href = `${siteConfig.zipsFolder}/${pkg.filename}`;
+                item.className = 'block w-full text-left px-4 py-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors flex items-center';
+                item.innerHTML = `<i class="fa fa-file-archive-o text-primary mr-3"></i> ${pkg.name}`;
+                
+                item.addEventListener('click', () => {
+                    document.body.removeChild(menu);
+                });
+                
+                list.appendChild(item);
+            });
+            
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'mt-4 w-full px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors';
+            cancelBtn.textContent = '取消';
+            cancelBtn.addEventListener('click', () => {
+                document.body.removeChild(menu);
+            });
+            
+            content.appendChild(title);
+            content.appendChild(list);
+            content.appendChild(cancelBtn);
+            menu.appendChild(content);
+            
+            // 点击背景关闭
+            menu.addEventListener('click', (e) => {
+                if (e.target === menu) {
+                    document.body.removeChild(menu);
+                }
+            });
+            
+            document.body.appendChild(menu);
+        }
+    </script>
+</body>
+</html>
