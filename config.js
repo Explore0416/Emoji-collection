@@ -30,6 +30,8 @@ const siteConfig = {
         // 'emoji1.png',
         // 'emoji2.jpg',
         // 'emoji3.gif',
+        // 'emoji2.jpg',
+        // 'emoji3.gif',
     ],
     
     // ====================== ZIP下载包配置 ======================
@@ -40,8 +42,8 @@ const siteConfig = {
      */
     zipPackages: [
         // 在这里添加你的ZIP包
-        { name: '全部表情包合集', filename: 'TV的表情包文件.zip' },
-        { name: '可爱表情包合集', filename: '老班长的表情包.zip' },
+        { name: 'TV的表情包合集', filename: 'TV的表情包文件.zip' },
+        { name: '老班长的表情包合集', filename: '老班长的表情包.zip' },
         { name: '搞笑表情包合集', filename: 'funny-emojis.zip' },
     ]
 };
