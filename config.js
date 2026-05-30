@@ -13,11 +13,11 @@ const siteConfig = {
     footerText: "© 2026 神秘用户 | 所有表情包仅供个人非商业使用",
     
     // ====================== 文件夹路径配置 ======================
-    /** 表情包图片存放的文件夹路径 */
-    photosFolder: "./photos",
+    /** 表情包图片存放的文件夹路径（已改用jsDelivr国内CDN加速） */
+    photosFolder: "https://cdn.jsdelivr.net/gh/Lightning-os-oyjj/Emoji-collection@main/photos",
     
-    /** ZIP压缩包存放的文件夹路径 */
-    zipsFolder: "./zips",
+    /** ZIP压缩包存放的文件夹路径（已改用jsDelivr国内CDN加速） */
+    zipsFolder: "https://cdn.jsdelivr.net/gh/你的GitHub用户名/你的仓库名@main/zips",
     
     // ====================== 表情包文件列表 ======================
     /** 
@@ -32,10 +32,6 @@ const siteConfig = {
         '1780141118186.png',
         '1780141120775.png',
         '1780141126150.png',
-        '',
-        '',
-        '',
-        '',
     ],
     
     // ====================== ZIP下载包配置 ======================
