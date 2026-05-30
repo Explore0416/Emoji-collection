@@ -4,10 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>表情包展示平台</title>
+    
+    <!-- 预连接CDN域名，加速资源加载 -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    
+    <!-- 预加载关键CSS -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" as="style">
+    
+    <!-- 引入外部资源 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
     <!-- 引入独立的配置文件 -->
     <script src="./config.js"></script>
+    
+    <!-- Tailwind配置 -->
     <script>
         tailwind.config = {
             theme: {
@@ -24,6 +36,7 @@
             }
         }
     </script>
+    
     <style type="text/tailwindcss">
         @layer utilities {
             .content-auto {
@@ -35,14 +48,27 @@
                 -webkit-backdrop-filter: blur(10px);
             }
             .card-hover {
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                transition: transform 0.25s ease-out, box-shadow 0.25s ease-out;
             }
             .card-hover:hover {
-                transform: translateY(-8px);
-                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                transform: translateY(-6px);
+                box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.1), 0 8px 8px -5px rgba(0, 0, 0, 0.04);
+            }
+            /* 图片加载动画 */
+            .img-loading {
+                background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+                background-size: 200% 100%;
+                animation: shimmer 1.5s infinite;
+            }
+            @keyframes shimmer {
+                0% { background-position: 200% 0; }
+                100% { background-position: -200% 0; }
             }
         }
     </style>
+    
+    <!-- Cloudflare缓存提示 -->
+    <meta http-equiv="Cache-Control" content="public, max-age=86400">
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-indigo-50 min-h-screen">
     <!-- 导航栏 -->
@@ -73,8 +99,8 @@
             <p class="text-gray-500" id="stats">正在加载表情包...</p>
         </div>
 
-        <!-- 表情包网格 -->
-        <div id="emojiGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+        <!-- 表情包网格 - 使用content-visibility提升渲染性能 -->
+        <div id="emojiGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 content-auto">
             <!-- 表情包将在这里动态生成 -->
         </div>
 
@@ -107,12 +133,12 @@
     <!-- 页脚 -->
     <footer class="mt-20 py-8 border-t border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500">
-            <p id="footerText">© 2025 表情包展示平台 | 所有表情包仅供个人使用</p>
+            <p id="footerText">© 2026 表情包展示平台 | 所有表情包仅供个人使用</p>
         </div>
     </footer>
 
     <script>
-        // 等待配置文件加载完成
+        // 等待DOM加载完成
         document.addEventListener('DOMContentLoaded', () => {
             // 检查配置是否加载成功
             if (typeof siteConfig === 'undefined') {
@@ -138,7 +164,7 @@
             document.getElementById('footerText').textContent = siteConfig.footerText;
         }
 
-        // 加载表情包
+        // 加载表情包 - 优化版：使用Intersection Observer实现高效懒加载
         function loadEmojis() {
             const emojiFiles = siteConfig.emojiFiles;
             
@@ -154,7 +180,7 @@
             const emojiGrid = document.getElementById('emojiGrid');
             emojiGrid.innerHTML = '';
 
-            // 生成表情包卡片
+            // 生成表情包卡片（只创建DOM，不立即加载图片）
             emojiFiles.forEach((filename, index) => {
                 const card = createEmojiCard(filename, index);
                 emojiGrid.appendChild(card);
@@ -162,23 +188,32 @@
 
             // 更新统计信息
             document.getElementById('stats').textContent = `共 ${emojiFiles.length} 个精选表情包`;
+
+            // 初始化懒加载观察器
+            initLazyLoading();
         }
 
-        // 创建表情包卡片
+        // 创建表情包卡片 - 优化版：使用data-src存储真实图片地址
         function createEmojiCard(filename, index) {
             const card = document.createElement('div');
             card.className = 'bg-white rounded-xl overflow-hidden shadow-md card-hover';
-            card.style.animationDelay = `${index * 0.05}s`;
+            card.style.animationDelay = `${index * 0.03}s`;
             
             const img = document.createElement('img');
-            img.src = `${siteConfig.photosFolder}/${filename}`;
+            // 使用data-src存储真实地址，不立即加载
+            img.dataset.src = `${siteConfig.photosFolder}/${filename}`;
             img.alt = `表情包 ${index + 1}`;
-            img.className = 'w-full h-48 object-cover cursor-pointer transition-transform duration-300 hover:scale-110';
-            img.loading = 'lazy';
+            img.className = 'w-full h-48 object-cover cursor-pointer transition-transform duration-300 hover:scale-110 img-loading';
+            
+            // 图片加载完成后移除加载动画
+            img.onload = function() {
+                this.classList.remove('img-loading');
+            };
             
             // 图片加载失败处理
             img.onerror = function() {
                 this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMiA5VjE1IiBzdHJva2U9IiM5NEEzQjYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CjxjaXJjbGUgY3g9IjEyIiBjeT0iNiIgcj0iMSIgZmlsbD0iIzk0QTNCNiIvPgo8L3N2Zz4=';
+                this.classList.remove('img-loading');
                 this.classList.add('p-8');
             };
             
@@ -189,6 +224,38 @@
             
             card.appendChild(img);
             return card;
+        }
+
+        // 初始化高效懒加载 - 使用Intersection Observer API
+        function initLazyLoading() {
+            // 检查浏览器是否支持Intersection Observer
+            if ('IntersectionObserver' in window) {
+                const imageObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            // 当图片进入视口时，加载真实图片
+                            img.src = img.dataset.src;
+                            // 加载完成后停止观察
+                            observer.unobserve(img);
+                        }
+                    });
+                }, {
+                    rootMargin: '200px 0px', // 提前200px开始加载
+                    threshold: 0.01
+                });
+
+                // 观察所有带有data-src属性的图片
+                document.querySelectorAll('img[data-src]').forEach(img => {
+                    imageObserver.observe(img);
+                });
+            } else {
+                // 降级方案：使用原生loading="lazy"
+                document.querySelectorAll('img[data-src]').forEach(img => {
+                    img.src = img.dataset.src;
+                    img.loading = 'lazy';
+                });
+            }
         }
 
         // 设置事件监听器
