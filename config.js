@@ -17,7 +17,7 @@ const siteConfig = {
     photosFolder: "https://cdn.jsdelivr.net/gh/Lightning-os-oyjj/Emoji-collection@main/photos",
     
     /** ZIP压缩包存放的文件夹路径（已改用jsDelivr国内CDN加速） */
-    zipsFolder: "https://cdn.jsdelivr.net/gh/你的GitHub用户名/你的仓库名@main/zips",
+    zipsFolder: "https://cdn.jsdelivr.net/gh/Lightning-os-oyjj/Emoji-collection@main/zips",
     
     // ====================== 表情包文件列表 ======================
     /** 
