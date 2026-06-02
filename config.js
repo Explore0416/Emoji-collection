@@ -50,6 +50,9 @@ const siteConfig = {
         'lmage_1780319530432_111.jpg',
         'Image_1780319533563_776.jpg',
         'lmage_1780319542913_492.jpg',
+        'TV-GIF-Lutou.gif',
+        'LBZ-GIF-Lutou.gif',
+        'QHY-GIF-Lutou.gif',
     ],
     
     // ====================== ZIP下载包配置 ======================
