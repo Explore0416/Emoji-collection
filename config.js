@@ -65,6 +65,6 @@ const siteConfig = {
         // 在这里添加你的ZIP包
         { name: 'TV的表情包合集', filename: 'TV的表情包文件.zip' },
         { name: '老班长的表情包合集', filename: '老班长的表情包.zip' },
-        { name: '搞笑表情包合集', filename: 'funny-emojis.zip' },
+        { name: 'GIF动图合集', filename: 'GIF.zip' },
     ]
 };
